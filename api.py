@@ -92,6 +92,54 @@ def get_top_spenders(limit: int = Query(10, ge=1, le=100, description="Nombre de
     finally:
         if conn:
             conn.close()
+# Modèle Pydantic pour le produit le plus vendu
+class TopProduct(BaseModel):
+    product_id: int
+    title: str
+    total_quantity_sold: int
+    total_revenue: float
+
+@app.get("/top-products", response_model=List[TopProduct], summary="Produit le plus vendu")
+def get_top_products(limit: int = Query(1, ge=1, le=20, description="Nombre de produits à retourner")):
+    """
+    Retourne le(s) produit(s) le plus vendu(s) avec la quantité totale et le revenu total.
+    
+    Paramètres :
+    - **limit** : nombre de produits à retourner (1-20)
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            query = """
+                SELECT
+                    product_id,
+                    title,
+                    SUM(quantity) AS total_quantity_sold,
+                    SUM(total) AS total_revenue
+                FROM cart_products
+                GROUP BY product_id, title
+                ORDER BY total_quantity_sold DESC
+                LIMIT %s;
+            """
+            cur.execute(query, (limit,))
+            results = cur.fetchall()
+            
+            return [
+                TopProduct(
+                    product_id=row[0],
+                    title=row[1],
+                    total_quantity_sold=row[2],
+                    total_revenue=float(row[3])
+                )
+                for row in results
+            ]
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des produits: {e}")
+        raise HTTPException(status_code=500, detail="Error executing top products query")
+    finally:
+        if conn:
+            conn.close()
 
 if __name__ == "__main__":
     import uvicorn
