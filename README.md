@@ -5,7 +5,7 @@ AxoneData est une application **Python** qui permet :
 - d’extraire des données depuis l’API **DummyJSON**  
 - de les stocker dans **PostgreSQL**  
 - de fournir une **API FastAPI** pour analyser les clients ayant le plus dépensé
-
+- de fournir une **API FastAPI** pour analyser les produit ayant le plus vendu
 ---
 
 ## 🌟 Fonctionnalités
@@ -29,3 +29,10 @@ AxoneData est une application **Python** qui permet :
 ### Avec Docker
 ```bash
 docker compose up -d --build
+
+
+✔️ ETL Pipeline (Extraction → Load)
+✔️ Base de données SQL relationnelle
+✔️ Backend FastAPI monolithique
+✔️ Docker Multi-Container Architecture
+✔️ Pydantic pour la validation des modèles
