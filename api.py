@@ -38,18 +38,22 @@ def get_db_connection():
         logger.error(f"Erreur de connexion à la base de données: {e}")
         raise ConnectionError("Database connection error")
 
-@app.get("/top-spenders", response_model=List[TopSpender], summary="Obtenir les 10 clients ayant le plus dépensé")
-def get_top_spenders():
+from fastapi import Query
+
+@app.get("/top-spenders", response_model=List[TopSpender], summary="Obtenir les clients ayant le plus dépensé")
+def get_top_spenders(limit: int = Query(10, ge=1, le=100, description="Nombre de top spenders à retourner")):
     """
-    Exécute une requête SQL pour calculer le montant total dépensé par chaque client 
-    (en utilisant le montant total après réduction) et retourne les 10 premiers.
+    Exécute une requête SQL pour calculer le montant total dépensé par chaque client
+    (en utilisant le montant total après réduction) et retourne les 'limit' premiers.
+    
+    Paramètres :
+    - **limit** : nombre de top spenders à retourner (1-100)
     """
     conn = None
     try:
         conn = get_db_connection()
         with conn.cursor() as cur:
-            # Requête SQL pour l'analyse
-            query = """
+            query = f"""
                 SELECT 
                     u.id AS user_id, 
                     u.firstName, 
@@ -63,20 +67,20 @@ def get_top_spenders():
                     u.id, u.firstName, u.lastName 
                 ORDER BY 
                     total_spent DESC 
-                LIMIT 10;
+                LIMIT {limit};
             """
             cur.execute(query)
             results = cur.fetchall()
             
-            top_spenders = []
-            for row in results:
-                top_spenders.append(TopSpender(
+            top_spenders = [
+                TopSpender(
                     user_id=row[0],
                     first_name=row[1],
                     last_name=row[2],
-                    # Convertir Decimal de PostgreSQL en float pour Pydantic
-                    total_spent=float(row[3]) 
-                ))
+                    total_spent=float(row[3])
+                )
+                for row in results
+            ]
             
             return top_spenders
 
