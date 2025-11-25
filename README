@@ -1,0 +1,48 @@
+AxoneData Project
+
+Description :
+AxoneData est une application Python qui permet d’extraire des données depuis l’API DummyJSON, de les stocker dans PostgreSQL,
+ puis de fournir une API FastAPI pour analyser les clients ayant le plus dépensé.
+
+
+1-Fonctionnalités
+
+Extraction des utilisateurs et paniers depuis DummyJSON.
+
+Stockage des données dans PostgreSQL avec gestion des relations et clés étrangères.
+
+API FastAPI pour récupérer les Top Spenders (clients ayant le plus dépensé).
+
+Conteneurisation via Docker pour PostgreSQL, pgAdmin, extraction et API.
+
+Gestion des erreurs et logs pour suivre l’exécution.
+
+2-Prérequis
+
+Docker et Docker Compose
+
+Python 3.11+ (si utilisation sans Docker)
+
+Git
+
+3-Installation et exécution Avec Docker
+
+docker compose up -d --build
+
+4-Technologies utilisées
+
+Python 3.11
+
+FastAPI
+
+PostgreSQL 15
+
+pgAdmin 4
+
+Docker & Docker Compose
+
+Psycopg2 pour PostgreSQL
+
+Requests pour l’API DummyJSON
+
+Logging pour le suivi des opérations

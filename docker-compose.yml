@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: axonedata_postgres
+    environment:
+      POSTGRES_DB: axonedata
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - axonedata_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: axonedata_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@axonedata.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - axonedata_network
+    depends_on:
+      - postgres
+
+  extractor:
+    build: .
+    container_name: axonedata_extractor
+    command: python extract_data.py
+    networks:
+      - axonedata_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  api:
+    build: .
+    container_name: axonedata_api
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    networks:
+      - axonedata_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  axonedata_network:
+    driver: bridge
